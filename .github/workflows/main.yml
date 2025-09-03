@@ -21,6 +21,8 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
@@ -29,8 +31,7 @@ jobs:
         bundler-cache: true
     
     - name: Run tests
-      run: |
-        bundle exec rspec --format documentation
+      run: bundle exec rspec --format documentation
     
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
@@ -43,6 +44,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
@@ -55,23 +58,18 @@ jobs:
 
   test_ruby_27:
     runs-on: ubuntu-latest
-    name: Ruby 2.7 (best effort)
+    name: Ruby 2.7 (compatibility)
     
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: '2.7'
-        bundler-cache: false
-    
-    - name: Install specific bundler version for Ruby 2.7
-      run: gem install bundler -v 2.3.26
-    
-    - name: Install dependencies
-      run: bundle _2.3.26_ install --jobs 4 --retry 3
-      timeout-minutes: 10
+        bundler-cache: true
     
     - name: Run tests
       run: bundle exec rspec --format documentation
