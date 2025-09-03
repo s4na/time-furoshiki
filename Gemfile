@@ -7,3 +7,9 @@ gemspec
 
 gem "rake", "~> 13.0"
 gem "rubocop", "~> 1.21"
+
+if RUBY_VERSION >= "3.0"
+  gem "sqlite3", "~> 2.1"
+else
+  gem "sqlite3", "~> 1.4"
+end

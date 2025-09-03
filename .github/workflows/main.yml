@@ -70,7 +70,8 @@ jobs:
     - name: Install dependencies
       run: |
         gem install bundler -v 2.3.26
-        bundle _2.3.26_ install
+        bundle _2.3.26_ config set --local deployment false
+        bundle _2.3.26_ install --path vendor/bundle
     
     - name: Run tests
       run: |
