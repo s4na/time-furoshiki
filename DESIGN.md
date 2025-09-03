@@ -47,6 +47,7 @@ Rails開発において、マイグレーションファイルの管理は運用
 3. **Configuration** (`lib/time_furoshiki/configuration.rb`)
    - 責務: Gem設定の管理
    - 設定項目:
+     - `enabled`: 機能の有効化制御（環境別デフォルト設定）
      - `keep_rolled_back_migrations`: ロールバック後の保存継続
      - `auto_clean_orphaned`: 孤立レコードの自動削除
      - `verbose`: 詳細ログ出力
@@ -111,10 +112,34 @@ Rails開発において、マイグレーションファイルの管理は運用
 - **復旧戦略**: 保存データ破損時のフォールバック機能
 - **回路ブレーカー**: 連続障害時の自動無効化機能
 
+#### 環境別設定戦略
+- **Development環境**: デフォルト有効（`enabled: true`）
+  - 開発者体験の向上、問題の早期発見
+  - マイグレーション試行錯誤を安全にサポート
+- **Production環境**: デフォルト無効（`enabled: false`）
+  - 明示的なopt-in方式で本番リスクを最小化
+  - 設定ファイルでの明示的有効化を必須とする
+- **Test環境**: 設定可能（デフォルト: development設定に従う）
+
+```ruby
+# config/initializers/time_furoshiki.rb (Production example)
+TimeFuroshiki.configure do |config|
+  # 本番環境では明示的にtrueを設定する必要がある
+  config.enabled = Rails.env.production? ? 
+    ENV['TIME_FUROSHIKI_ENABLED']&.downcase == 'true' : 
+    Rails.env.development?
+    
+  config.keep_rolled_back_migrations = true
+  config.auto_clean_orphaned = Rails.env.production?
+  config.verbose = !Rails.env.production?
+end
+```
+
 #### Rails統合技術詳細
 - **フック実装**: `ActiveRecord::Migration`のbefore/after callbacksを活用
 - **トランザクション境界**: Rails内部のマイグレーショントランザクションと統合
 - **メタデータ抽出**: マイグレーションクラスからの動的情報収集
+- **環境検出**: Rails.env による自動的な動作モード切り替え
 
 #### セキュリティ考慮
 - **SQLインジェクション対策**: パラメータ化クエリの徹底
@@ -209,7 +234,8 @@ rake time_furoshiki:clean_orphaned
 
 | リスク | 影響度 | 確率 | 対策 |
 |--------|--------|------|------|
-| 設定ミスによる機能無効化 | 高 | 中 | デフォルト設定の最適化、検証機能 |
+| 本番環境での意図しない有効化 | 高 | 低 | デフォルト無効、明示的opt-in方式 |
+| 設定ミスによる機能無効化 | 中 | 中 | 環境別デフォルト設定、検証機能 |
 | 保存データとファイルの不整合 | 中 | 中 | 整合性チェック機能、修復ツール |
 | パフォーマンス劣化 | 低 | 低 | ベンチマークテスト、最適化 |
 
