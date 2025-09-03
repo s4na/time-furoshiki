@@ -104,7 +104,7 @@ DEPENDENCIES
   rspec (~> 3.0)
   rubocop (~> 1.21)
   simplecov (~> 0.21)
-  sqlite3 (~> 1.4)
+  sqlite3 (~> 1.7)
   time-furoshiki!
 
 BUNDLED WITH

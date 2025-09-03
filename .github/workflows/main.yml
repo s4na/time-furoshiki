@@ -65,12 +65,20 @@ jobs:
       with:
         fetch-depth: 0
     
-    - name: Set up Ruby
+    - name: Set up Ruby 2.7
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: '2.7'
-        bundler-cache: true
+        bundler-cache: false
+    
+    - name: Install Bundler 2.3.26 for Ruby 2.7
+      run: gem install bundler -v 2.3.26
+    
+    - name: Install dependencies with Bundler 2.3.26
+      run: bundle _2.3.26_ install --jobs 4 --retry 3
+      env:
+        BUNDLE_DEPLOYMENT: false
     
     - name: Run tests
-      run: bundle exec rspec --format documentation
+      run: bundle _2.3.26_ exec rspec --format documentation
       continue-on-error: true
