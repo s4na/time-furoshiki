@@ -55,7 +55,7 @@ jobs:
 
   test_ruby_27:
     runs-on: ubuntu-latest
-    name: Ruby 2.7
+    name: Ruby 2.7 (best effort)
     
     steps:
     - uses: actions/checkout@v4
@@ -64,16 +64,15 @@ jobs:
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: '2.7'
-        bundler: '2.3.26'
         bundler-cache: false
     
+    - name: Install specific bundler version for Ruby 2.7
+      run: gem install bundler -v 2.3.26
+    
     - name: Install dependencies
-      run: |
-        gem install bundler -v 2.3.26
-        bundle _2.3.26_ config set --local deployment false
-        bundle _2.3.26_ install --path vendor/bundle
+      run: bundle _2.3.26_ install --jobs 4 --retry 3
+      timeout-minutes: 10
     
     - name: Run tests
-      run: |
-        bundle exec rspec --format documentation
+      run: bundle exec rspec --format documentation
       continue-on-error: true
