@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - feat/initial-implementation
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Ruby 2.7 with Rails 6.0/6.1 (released around 2019-2020)
+          - ruby: '2.7'
+            rails: '6.0'
+            bundler: '2.3.26'
+          - ruby: '2.7'
+            rails: '6.1'
+            bundler: '2.3.26'
+          
+          # Ruby 3.0 with Rails 6.1/7.0 (released around 2020-2021)
+          - ruby: '3.0'
+            rails: '6.1'
+          - ruby: '3.0'
+            rails: '7.0'
+          
+          # Ruby 3.1 with Rails 7.0/7.1 (released around 2022)
+          - ruby: '3.1'
+            rails: '7.0'
+          - ruby: '3.1'
+            rails: '7.1'
+          
+          # Ruby 3.2 with Rails 7.0/7.1 (released around 2022-2023)
+          - ruby: '3.2'
+            rails: '7.0'
+          - ruby: '3.2'
+            rails: '7.1'
+          
+          # Ruby 3.3 with Rails 7.1/7.2 (released around 2023-2024)
+          - ruby: '3.3'
+            rails: '7.1'
+          - ruby: '3.3'
+            rails: '7.2'
+
+    name: Ruby ${{ matrix.ruby }} / Rails ${{ matrix.rails }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby }}
+        bundler-cache: ${{ !matrix.bundler }}
+    
+    - name: Set Rails version
+      run: |
+        bundle config set --local with 'rails${{ matrix.rails }}'
+      env:
+        RAILS_VERSION: ${{ matrix.rails }}
+    
+    - name: Install dependencies (Ruby 2.7)
+      if: matrix.bundler
+      run: |
+        gem install bundler -v ${{ matrix.bundler }}
+        bundle _${{ matrix.bundler }}_ config set --local deployment false
+        bundle _${{ matrix.bundler }}_ install --path vendor/bundle
+      env:
+        RAILS_VERSION: ${{ matrix.rails }}
+    
+    - name: Install dependencies (Ruby 3.x)
+      if: ${{ !matrix.bundler }}
+      run: |
+        bundle install
+      env:
+        RAILS_VERSION: ${{ matrix.rails }}
+    
+    - name: Run tests
+      run: |
+        bundle exec rspec --format documentation
+      env:
+        RAILS_VERSION: ${{ matrix.rails }}
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      if: matrix.ruby == '3.3' && matrix.rails == '7.2'
+      with:
+        file: ./coverage/coverage.xml
+        fail_ci_if_error: false
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.3'
+        bundler-cache: true
+    
+    - name: Run RuboCop
+      run: bundle exec rubocop
