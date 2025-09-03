@@ -1,0 +1,14 @@
+class CreateTimeFuroshikiMigrations < ActiveRecord::Migration<%= migration_version %>
+  def change
+    create_table :time_furoshiki_migrations do |t|
+      t.string :version, null: false
+      t.string :filename, null: false
+      t.text :content, null: false
+      t.datetime :executed_at
+      t.timestamps
+    end
+    
+    add_index :time_furoshiki_migrations, :version, unique: true
+    add_index :time_furoshiki_migrations, :executed_at
+  end
+end
